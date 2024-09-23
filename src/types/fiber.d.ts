@@ -1,4 +1,12 @@
-import { EFFECT_TAG } from '@/constant/index';
+import { EFFECT_TAG, ELEMENT_TYPE } from '@/constant/index';
+
+export type ReactElement = {
+  type: ELEMENT_TYPE;
+  props: {
+    children: ReactElement[];
+    [propName: string]: any;
+  };
+};
 
 export interface Fiber {
   /**  用于连接其他Fiber节点形成Fiber树 */
@@ -15,8 +23,9 @@ export interface Fiber {
   /** 节点类型 */
   tag?: string;
   key?: string;
-  elementType?: any;
-  stateNode?: any;
+  element: ReactElement;
+  /** 真实DOM节点 */
+  stateNode?: HTMLElement;
   type?: any;
   props?: any;
 
@@ -30,9 +39,6 @@ export interface Fiber {
   effectTag?: EFFECT_TAG;
   firstEffect?: Fiber;
   lastEffect?: Fiber;
-
-  /** 节点对应的真实 DOM 节点 */
-  dom?: any;
 
   stateHooks?: (() => void)[];
   effectHooks?: (() => void)[];
