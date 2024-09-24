@@ -1,5 +1,6 @@
 import { EFFECT_TAG, ELEMENT_TYPE } from '@/constant/index';
 import { reconcileChildren } from '@/reconciler/reconciler';
+import { updateDom } from '@/renderer/renderer';
 import type { Fiber, ReactElement } from '@/types/fiber';
 
 /** Global variables */
@@ -55,7 +56,7 @@ function commitWork(fiber?: Fiber) {
 
   if (fiber.effectTag === EFFECT_TAG.PLACEMENT) {
     // 如果有 index 则说明是插入到某个位置，否则是追加到最后
-    const targetPositionDom = parentDom?.childNodes[fiber.index!]; //  要插入到那个 dom 之前
+    const targetPositionDom = parentDom?.childNodes[fiber.index!]; // 要插入到那个 dom 之前
 
     if (targetPositionDom) {
       parentDom.insertBefore(fiber.stateNode!, targetPositionDom);
@@ -65,9 +66,8 @@ function commitWork(fiber?: Fiber) {
   } else if (fiber.effectTag === EFFECT_TAG.UPDATE) {
     // @ TODO:
     const { children, ...newAttributes } = fiber.element.props;
-    const oldAttributes = Object.assign({}, fiber.alternate.element.props);
-    delete oldAttributes.children;
-    updateAttributes(fiber.stateNode, newAttributes, oldAttributes);
+    const oldAttributes = Object.assign({}, fiber?.alternate?.element.props);
+    updateDom(fiber.stateNode!, newAttributes, oldAttributes);
   }
 
   commitWork(fiber.sibling);
