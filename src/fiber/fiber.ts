@@ -1,6 +1,6 @@
 import { EFFECT_TAG, ELEMENT_TYPE } from '@/constant/index';
 import { reconcileChildren } from '@/reconciler/reconciler';
-import { updateDom } from '@/renderer/renderer';
+import { createDom, updateDom } from '@/renderer/renderer';
 import type { Fiber, ReactElement } from '@/types/fiber';
 
 /** Global variables */
@@ -32,8 +32,9 @@ export function createRoot(element: ReactElement, container: HTMLElement) {
       children: [element], // 此时的element还只是React.createElement函数创建的virtual dom树
     },
     alternate: currentRoot,
-    element: element,
+    // element: element,
   };
+  deletions = [];
   nextUnitOfWork = workInProgressRoot;
 }
 
@@ -45,7 +46,7 @@ function commitWork(fiber?: Fiber) {
   let parentDom = fiber?.return?.stateNode!;
 
   if (fiber.effectTag === EFFECT_TAG.DELETION) {
-    if (fiber.element.type === ELEMENT_TYPE.FUNCTION_COMPONENT) {
+    if (fiber.type instanceof Function) {
       parentDom?.removeChild(fiber.stateNode!);
     }
     return;
@@ -88,8 +89,8 @@ function updateFunctionComponent(fiber: Fiber) {
 }
 
 function updateHostComponent(fiber: Fiber) {
-  if (!fiber.dom) {
-    fiber.dom = document.createElement(fiber.type);
+  if (!fiber.stateNode) {
+    fiber.stateNode = createDom(fiber);
   }
   reconcileChildren(fiber, fiber.props.children);
 }
@@ -98,7 +99,8 @@ function updateHostComponent(fiber: Fiber) {
  * 处理每个 fiber 节点之后，会按照 child、sibling、return 的顺序返回下一个要处理的 fiber 节点：
  */
 function performUnitOfWork(fiber: Fiber) {
-  const isFunctionComponent = typeof fiber.type === 'function';
+  const isFunctionComponent = fiber.type instanceof Function;
+
   if (isFunctionComponent) {
     // 如果是函数组件，则需要调用该组件，并将其返回的 JSX 元素转换为 fiber 节点
     updateFunctionComponent(fiber);
@@ -125,6 +127,9 @@ function workLoop(deadline: IdleDeadline) {
   while (nextUnitOfWork && !shouldYield) {
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
     shouldYield = deadline.timeRemaining() < 1;
+
+    console.log('workInProgressRoot', workInProgressRoot);
+    console.log('currentRoot', currentRoot);
   }
 
   if (!nextUnitOfWork && currentFunctionFiber) {

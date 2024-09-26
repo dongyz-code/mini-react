@@ -18,13 +18,4 @@ export enum EFFECT_TAG {
 export enum ELEMENT_TYPE {
   /** 文本节点 */
   TEXT_ELEMENT = 'TEXT_ELEMENT',
-
-  /** 函数组件 */
-  FUNCTION_COMPONENT = 'FUNCTION_COMPONENT',
-
-  /** 类组件 */
-  CLASS_COMPONENT = 'CLASS_COMPONENT',
-
-  /** 原生组件 */
-  HOST_COMPONENT = 'HOST_COMPONENT',
 }

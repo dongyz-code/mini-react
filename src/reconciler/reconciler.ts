@@ -1,4 +1,5 @@
 import { EFFECT_TAG } from '@/constant/index';
+import { deleteFiber } from '@/fiber/fiber';
 import type { Fiber, ReactElement } from '@/types/fiber';
 
 /**
@@ -14,12 +15,13 @@ export function reconcileChildren(workInProgress: Fiber, elements: ReactElement[
   let oldFiber = workInProgress.alternate?.child;
   let prevSibling: Fiber;
 
-  while (index < elements.length || oldFiber !== null) {
+  while (index < elements.length || oldFiber) {
     const element = elements[index];
     let newFiber: Fiber;
 
     const sameType = element?.type === oldFiber?.type;
 
+    /** 相同节点 update */
     if (sameType) {
       newFiber = {
         type: oldFiber?.type,
@@ -32,6 +34,7 @@ export function reconcileChildren(workInProgress: Fiber, elements: ReactElement[
       };
     }
 
+    /** 新节点 */
     if (element && !sameType) {
       newFiber = {
         type: element.type,
@@ -44,10 +47,12 @@ export function reconcileChildren(workInProgress: Fiber, elements: ReactElement[
       };
     }
 
+    /** 旧节点 删除旧节点 */
     if (oldFiber && !sameType) {
       oldFiber.effectTag = EFFECT_TAG.DELETION;
 
-      // TODO: delete oldFiber from the tree
+      // TODO: 循环引用
+      deleteFiber(oldFiber);
     }
 
     if (oldFiber) {

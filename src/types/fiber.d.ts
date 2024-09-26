@@ -1,7 +1,7 @@
 import { EFFECT_TAG, ELEMENT_TYPE } from '@/constant/index';
 
 export type ReactElement = {
-  type: ELEMENT_TYPE;
+  type: ELEMENT_TYPE | (() => ReactElement);
   props: {
     children: ReactElement[];
     [propName: string]: any;
@@ -23,7 +23,7 @@ export interface Fiber {
   /** 节点类型 */
   tag?: string;
   key?: string;
-  element: ReactElement;
+  element?: ReactElement;
   /** 真实DOM节点 */
   stateNode?: HTMLElement;
   type?: any;

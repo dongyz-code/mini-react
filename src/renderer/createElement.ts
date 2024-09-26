@@ -1,4 +1,4 @@
-import { ELEMENT_TYPE } from '@/constant/index';
+import { ELEMENT_TYPE } from '@/constant';
 import type { ReactElement } from '@/types/fiber';
 /**
  * 文本节点是没有 type、children、props 的, 所以需要单独处理
