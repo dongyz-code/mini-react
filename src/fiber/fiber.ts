@@ -4,14 +4,14 @@ import { createDom, updateDom } from '@/renderer/renderer';
 import type { Fiber, ReactElement } from '@/types/fiber';
 
 /** Global variables */
-let nextUnitOfWork: Fiber | undefined;
+let nextUnitOfWork: Fiber | null = null;
 /** 当前工作的 fiber 树  */
-let workInProgressRoot: Fiber;
+let workInProgressRoot: Fiber | null = null;
 /** 上一次渲染的 fiber 树 */
-let currentRoot: Fiber;
+let currentRoot: Fiber | null = null;
 let currentFunctionFiber: Fiber | null = null;
 /**  当前正在执行的函数组件对应 fiber */
-let stateHookIndex = null;
+let stateHookIndex: number | null = null;
 /** 要执行删除 dom 的 fiber */
 let deletions: Fiber[] = [];
 
@@ -44,6 +44,10 @@ function commitWork(fiber?: Fiber) {
   }
 
   let parentDom = fiber?.return?.stateNode!;
+  if (!parentDom) {
+    console.log('parent dom is null');
+    console.log('fiber', fiber);
+  }
 
   if (fiber.effectTag === EFFECT_TAG.DELETION) {
     if (fiber.type instanceof Function) {
@@ -66,8 +70,8 @@ function commitWork(fiber?: Fiber) {
     }
   } else if (fiber.effectTag === EFFECT_TAG.UPDATE) {
     // @ TODO:
-    const { children, ...newAttributes } = fiber.element.props;
-    const oldAttributes = Object.assign({}, fiber?.alternate?.element.props);
+    const { children, ...newAttributes } = fiber.props;
+    const oldAttributes = Object.assign({}, fiber?.alternate?.props);
     updateDom(fiber.stateNode!, newAttributes, oldAttributes);
   }
 
@@ -75,7 +79,11 @@ function commitWork(fiber?: Fiber) {
 }
 
 function commitRoot() {
-  // deletions.forEach();
+  deletions.forEach(commitWork);
+  commitWork(workInProgressRoot?.child);
+  currentRoot = workInProgressRoot;
+  workInProgressRoot = null;
+  deletions = [];
 }
 
 function updateFunctionComponent(fiber: Fiber) {
@@ -125,11 +133,8 @@ function performUnitOfWork(fiber: Fiber) {
 function workLoop(deadline: IdleDeadline) {
   let shouldYield = false;
   while (nextUnitOfWork && !shouldYield) {
-    nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
+    nextUnitOfWork = performUnitOfWork(nextUnitOfWork)!;
     shouldYield = deadline.timeRemaining() < 1;
-
-    console.log('workInProgressRoot', workInProgressRoot);
-    console.log('currentRoot', currentRoot);
   }
 
   if (!nextUnitOfWork && currentFunctionFiber) {
