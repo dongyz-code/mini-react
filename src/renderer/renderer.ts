@@ -10,6 +10,10 @@ const isGone = (prev: Record<string, any>, next: Record<string, any>) => (key: s
 export function createDom(fiber: Fiber) {
   const dom = fiber.type === 'TEXT_ELEMENT' ? document.createTextNode('') : document.createElement(fiber.type);
   updateDom(dom, {}, fiber.props);
+  if (fiber.type === 'TEXT_ELEMENT') {
+    console.log('update dom', dom);
+  }
+
   return dom;
 }
 
@@ -26,7 +30,9 @@ export function updateDom(dom: HTMLElement, prevProps: Record<string, any>, next
       // @ts-ignore
       dom[key] = '';
     }
+  });
 
+  Object.keys(nextProps).forEach((key) => {
     /** update new events */
     if (isEvent(key) && isNew(prevProps, nextProps)(key)) {
       const eventType = key.toLowerCase().substring(2);

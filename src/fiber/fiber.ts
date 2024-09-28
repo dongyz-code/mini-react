@@ -43,11 +43,11 @@ function commitWork(fiber?: Fiber) {
     return;
   }
 
-  let parentDom = fiber?.return?.stateNode!;
-  if (!parentDom) {
-    console.log('parent dom is null');
-    console.log('fiber', fiber);
+  let domParentFiber = fiber.return;
+  while (!domParentFiber?.stateNode) {
+    domParentFiber = domParentFiber?.return;
   }
+  const parentDom = domParentFiber.stateNode;
 
   if (fiber.effectTag === EFFECT_TAG.DELETION) {
     if (fiber.type instanceof Function) {
@@ -55,21 +55,17 @@ function commitWork(fiber?: Fiber) {
     }
     return;
   }
-
-  /** 深度优先遍历，先遍历child， 后遍历 sibling */
   commitWork(fiber.child);
-
-  if (fiber.effectTag === EFFECT_TAG.PLACEMENT) {
+  if (fiber.effectTag === EFFECT_TAG.PLACEMENT && fiber.stateNode) {
     // 如果有 index 则说明是插入到某个位置，否则是追加到最后
     const targetPositionDom = parentDom?.childNodes[fiber.index!]; // 要插入到那个 dom 之前
 
     if (targetPositionDom) {
-      parentDom.insertBefore(fiber.stateNode!, targetPositionDom);
+      parentDom.insertBefore(fiber.stateNode, targetPositionDom);
     } else {
-      parentDom.appendChild(fiber.stateNode!);
+      parentDom.appendChild(fiber.stateNode);
     }
   } else if (fiber.effectTag === EFFECT_TAG.UPDATE) {
-    // @ TODO:
     const { children, ...newAttributes } = fiber.props;
     const oldAttributes = Object.assign({}, fiber?.alternate?.props);
     updateDom(fiber.stateNode!, newAttributes, oldAttributes);
@@ -92,8 +88,8 @@ function updateFunctionComponent(fiber: Fiber) {
   currentFunctionFiber.stateHooks = [];
   currentFunctionFiber.effectHooks = [];
 
-  const children = [fiber.type(fiber.props)];
-  reconcileChildren(fiber, children);
+  const element = [fiber.type(fiber.props)];
+  reconcileChildren(fiber, element);
 }
 
 function updateHostComponent(fiber: Fiber) {

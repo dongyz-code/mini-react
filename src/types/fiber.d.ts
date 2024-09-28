@@ -15,7 +15,7 @@ export interface Fiber {
   sibling?: Fiber;
 
   /** 指向该fiber在另一次更新时对应的fiber */
-  alternate?: Fiber;
+  alternate: Fiber | null;
 
   /** 节点索引 */
   index?: number;

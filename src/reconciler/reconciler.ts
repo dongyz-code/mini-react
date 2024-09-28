@@ -41,7 +41,7 @@ export function reconcileChildren(workInProgress: Fiber, elements: ReactElement[
         props: element.props,
         stateNode: undefined,
         return: workInProgress,
-        alternate: undefined,
+        alternate: null,
         effectTag: EFFECT_TAG.PLACEMENT,
         element,
       };
